@@ -218,26 +218,27 @@ public class UserServiceImpl implements UserService {
         bookTitleList= cart.getBook();
         List<BooksOrdered> booksOrdered= new ArrayList<>();
         List<Book> books=new ArrayList<>();
+        List<BooksCheck> booksCheckList= bookTitleRepo.findBooks(bookTitleList.get(0).getId());
 
-        for(BookTitle bookTitle:bookTitleList){
-            List<BooksCheck> booksChecks= bookTitleRepo.findBooks(bookTitle.getId());
-            if(booksChecks.size()<1) {continue;}
-            Long titleId = booksChecks.get(0).getBookTitleId();
-            int copiesLeft = booksChecks.get(0).getCopiesLeft();
-            Long bookId=  booksChecks.get(0).getBookId();
-            boolean pur=booksChecks.get(0).isBooked();
+//        for(BookTitle bookTitle:bookTitleList){
+//            List<BooksCheck> booksChecks= bookTitleRepo.findBooks(bookTitle.getId());
+//            if(booksChecks.size()<1) {continue;}
+//            Long titleId = booksChecks.get(0).getBookTitleId();
+//            int copiesLeft = booksChecks.get(0).getCopiesLeft();
+//            Long bookId=  booksChecks.get(0).getBookId();
+//            boolean pur=booksChecks.get(0).isBooked();
+//
+//            copiesLeft= copiesLeft-1;
+//            pur=true;
+//
+//            bookTitleRepo.getById(titleId).setAvailable(copiesLeft);
+//            bookRepo.getById(bookId).setBooked(pur);
+//
+//            BooksOrdered ob3=new BooksOrdered();
+//            ob3.setBookId(bookId);
+//            booksOrderedRepo.save(ob3);
 
-            copiesLeft= copiesLeft-1;
-            pur=true;
-
-            bookTitleRepo.getById(titleId).setAvailable(copiesLeft);
-            bookRepo.getById(bookId).setBooked(pur);
-
-            BooksOrdered ob3=new BooksOrdered();
-            ob3.setBookId(bookId);
-            booksOrderedRepo.save(ob3);
-
-        }
+    //    }
 
         orders.setBooksOrderedList(booksOrdered);
         ordersRepo.save(orders);
