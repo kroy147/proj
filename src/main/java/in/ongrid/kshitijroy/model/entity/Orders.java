@@ -20,6 +20,14 @@ public class Orders extends ResourceInfo {
     @OneToMany(mappedBy = "orders", cascade = CascadeType.ALL)
     List<BooksOrdered> booksOrderedList;
 
+    public Orders(Date issueDate, User userOrder, List<BooksOrdered> booksOrderedList) {
+        this.issueDate = issueDate;
+        this.userOrder = userOrder;
+        this.booksOrderedList = booksOrderedList;
+    }
+
+    public Orders() {
+    }
 
     public Long getId() {
         return id;

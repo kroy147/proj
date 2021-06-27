@@ -15,12 +15,9 @@ public class Category extends ResourceInfo {
     @Column
     private String name;
 
-
     @JsonIgnore
     @OneToMany(mappedBy = "categoryOb",cascade=CascadeType.ALL)
     List<BookTitle> bookTitle= new ArrayList<BookTitle>();
-
-
 
     public Long getId() {
         return id;

@@ -1,9 +1,5 @@
 package in.ongrid.kshitijroy.model.dto;
 
-import org.apache.tomcat.jni.Address;
-
-import javax.persistence.Column;
-
 public class UserSignUpRequestDTO {
     private String name;
     private String email;

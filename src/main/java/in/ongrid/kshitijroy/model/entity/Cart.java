@@ -1,5 +1,7 @@
 package in.ongrid.kshitijroy.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 import java.util.*;
 @Entity
@@ -14,9 +16,19 @@ public class Cart extends ResourceInfo {
     @ManyToOne
     private User userCart;
 
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(name = "cart_book_title",joinColumns = @JoinColumn(name = "cart_id"),inverseJoinColumns = @JoinColumn(name = "book_title_id"))
+    List<BookTitle> bookTitleList;
 
-    @ManyToMany(mappedBy = "carts")
-    List<BookTitle> book= new ArrayList<>();
+
+    public List<BookTitle> getBookTitleList() {
+        return bookTitleList;
+    }
+
+    public void setBookTitleList(List<BookTitle> bookTitleList) {
+        this.bookTitleList = bookTitleList;
+    }
 
     public Long getId() {
         return id;
@@ -40,13 +52,5 @@ public class Cart extends ResourceInfo {
 
     public void setUserCart(User userCart) {
         this.userCart = userCart;
-    }
-
-    public List<BookTitle> getBook() {
-        return book;
-    }
-
-    public void setBook(List<BookTitle> book) {
-        this.book = book;
     }
 }

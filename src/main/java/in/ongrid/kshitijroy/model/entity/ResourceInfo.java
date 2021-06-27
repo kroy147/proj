@@ -9,7 +9,6 @@ import java.util.Date;
 @MappedSuperclass
 public class ResourceInfo {
 
-
     @Column
     private Date resourceCreate;
 

@@ -11,10 +11,8 @@ public class Book extends ResourceInfo {
     @Column
     private String name;
 
-
     @Column
     private String paperback;
-
 
     @Column(columnDefinition = "boolean default false")
     private boolean booked;
@@ -22,27 +20,7 @@ public class Book extends ResourceInfo {
     @ManyToOne
     private BookTitle bookTitle;
 
-    public BooksOrdered getBooksOrder() {
-        return booksOrder;
-    }
 
-    public void setBooksOrder(BooksOrdered booksOrder) {
-        this.booksOrder = booksOrder;
-    }
-
-
-    @OneToOne
-    private BooksOrdered booksOrder;
-
-
-    public BooksOrdered getBookOrder() {
-
-        return booksOrder;
-    }
-
-    public void setBookOrder(BooksOrdered booksOrder) {
-        this.booksOrder = booksOrder;
-    }
 
     public Long getId() {
         return id;

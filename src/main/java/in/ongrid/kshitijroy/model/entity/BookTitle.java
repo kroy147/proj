@@ -28,10 +28,10 @@ public class BookTitle extends ResourceInfo {
     @ManyToOne
     private Category categoryOb;
 
-
     @JsonIgnore
     @OneToMany(mappedBy = "bookTitle",cascade = CascadeType.ALL)
-    List<Book> book = new ArrayList<>();
+    List<Book> books;
+
 
     @JsonIgnore
     @ManyToMany
@@ -39,9 +39,13 @@ public class BookTitle extends ResourceInfo {
     List<Cart> carts=new ArrayList<>();
 
 
-    @JsonIgnore
-    @OneToOne
-    private BooksOrdered bookOrder;
+    public List<Book> getBooks() {
+        return books;
+    }
+
+    public void setBooks(List<Book> books) {
+        this.books = books;
+    }
 
     public Long getId() {
         return id;
@@ -89,14 +93,6 @@ public class BookTitle extends ResourceInfo {
 
     public void setCategoryOb(Category categoryOb) {
         this.categoryOb = categoryOb;
-    }
-
-    public List<Book> getBook() {
-        return book;
-    }
-
-    public void setBook(List<Book> book) {
-        this.book = book;
     }
 
     public List<Cart> getCarts() {

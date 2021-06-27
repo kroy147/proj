@@ -4,6 +4,11 @@ public class CartInfo {
     private Long BookTitleId;
     private String bookName;
 
+    public CartInfo(Long bookTitleId, String bookName) {
+        BookTitleId = bookTitleId;
+        this.bookName = bookName;
+    }
+
     public Long getBookTitleId() {
         return BookTitleId;
     }

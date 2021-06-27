@@ -65,9 +65,6 @@ public class UserServiceImpl implements UserService {
         User user = new User(userSignUpRequestDTO.getName(),userSignUpRequestDTO.getEmail(),
                 userSignUpRequestDTO.getPassword(),add);
         userRepo.save(user);
-
-        Long id=user.getId();
-
         userSignUpResponse.setId(user.getId());
         return userSignUpResponse;
     }
@@ -141,144 +138,78 @@ public class UserServiceImpl implements UserService {
         if(id==null){
             throw new IllegalArgumentException("invalid user id");
         }
-        /*
-        List<Cart> carts= cartRepo.findByUserCartId(id);
-        for(int i=0;i<carts.size();i++){
-            if(carts.get(i).isPurchased()==false){
-                int count= carts.get(i).getBook().size();
-                return count;
-            }
-        }*/
         Cart cart= cartRepo.findByUserCartIdAndPurchased(id,false);
         if(cart!=null){
-            return cart.getBook().size();
+            return cart.getBookTitleList().size();
         }
         User user= userRepo.getById(id);
 
         List<Cart> carts= cartRepo.findByUserCartId(id);
-         cart= new Cart();
+        cart= new Cart();
         cart.setUserCart(user);
         cartRepo.save(cart);
-        Long cartId= cart.getId();
         carts.add(cart);
         user.setuCart(carts);
-        System.out.println(cartId);
-        return cart.getBook().size();
+        return cart.getBookTitleList().size();
     }
 
     @Override
     public CartAddResponseDTO addCart(Long id, CartAddRequestDTO cartAddRequestDTO) {
 
-        if(id==null){
+        if(id==null) {
             throw new IllegalArgumentException("invalid user Id");
         }
-
         Cart cart = cartRepo.findByUserCartIdAndPurchased(id, false);
-        //find an empty cart
+        if(cart == null ){
+            throw new IllegalArgumentException("user doesn't have cart");
+        }
         Long bookTitleId = cartAddRequestDTO.getBookTitleId();
-        List<BookTitle> bookList;
-        bookList = cart.getBook();
+        List<BookTitle> bookList = cart.getBookTitleList();
         BookTitle bookTitle = bookTitleRepo.getById(bookTitleId);
         bookList.add(bookTitle);  // add book in booklist array of cart
-        cart.setBook(bookList);
+        cart.setBookTitleList(bookList);
         cartRepo.save(cart);  // save info in repo
-        List<Cart> carts = new ArrayList<>();
-        carts.add(cart);
-        bookTitle.setCarts(carts);
-        bookTitleRepo.save(bookTitle); // add same detail in cart
         CartAddResponseDTO cartAddResponseDTO = new CartAddResponseDTO();
         List<CartInfo> details = new ArrayList<>();
-        for (int i = 0; i < bookList.size(); i++) {
-            CartInfo cartInfo = new CartInfo();
-            cartInfo.setBookTitleId(bookList.get(i).getId());
-            cartInfo.setBookName(bookList.get(i).getBookName());
-            details.add(cartInfo);
+        for(BookTitle bookTitle1 : bookList){
+                CartInfo cartInfo = new CartInfo(bookTitle1.getId(), bookTitle1.getBookName());
+                details.add(cartInfo);
         }
         cartAddResponseDTO.setCartCount(bookList.size());
         cartAddResponseDTO.setBookTitleList(details);
         return cartAddResponseDTO;
-
     }
 
     @Override
     public String issue(Long id) {
         if(id==null){
-            throw new IllegalArgumentException("user id not true");
+            throw new IllegalArgumentException("user id can not be null");
         }
-
         Cart cart= cartRepo.findByUserCartIdAndPurchased(id,false);
-        System.out.println(cart.getId());
-        System.out.println(cart.getUserCart().getId());//userID
-
-        Orders orders= new Orders();  // new order create
-        orders.setIssueDate(new Date());
-        orders.setUserOrder(userRepo.getById(id));
-
-        List<BookTitle> bookTitleList = new ArrayList<>();
-        bookTitleList= cart.getBook();
+        if(cart == null){
+            throw new IllegalArgumentException("user doesn't have any cart");
+        }
+        List<BookTitle> bookTitleList = cart.getBookTitleList();
         List<BooksOrdered> booksOrdered= new ArrayList<>();
-        List<Book> books=new ArrayList<>();
-        List<BooksCheck> booksCheckList= bookTitleRepo.findBooks(bookTitleList.get(0).getId());
+        List<Long> bookTitlesId = new ArrayList<>();
 
-//        for(BookTitle bookTitle:bookTitleList){
-//            List<BooksCheck> booksChecks= bookTitleRepo.findBooks(bookTitle.getId());
-//            if(booksChecks.size()<1) {continue;}
-//            Long titleId = booksChecks.get(0).getBookTitleId();
-//            int copiesLeft = booksChecks.get(0).getCopiesLeft();
-//            Long bookId=  booksChecks.get(0).getBookId();
-//            boolean pur=booksChecks.get(0).isBooked();
-//
-//            copiesLeft= copiesLeft-1;
-//            pur=true;
-//
-//            bookTitleRepo.getById(titleId).setAvailable(copiesLeft);
-//            bookRepo.getById(bookId).setBooked(pur);
-//
-//            BooksOrdered ob3=new BooksOrdered();
-//            ob3.setBookId(bookId);
-//            booksOrderedRepo.save(ob3);
-
-    //    }
-
-        orders.setBooksOrderedList(booksOrdered);
-        ordersRepo.save(orders);
-
-
-        /*
-
-        for( BookTitle ob:bookTitleList){
-            List<Book>book1=new ArrayList<>();
-            if(ob.getAvailable()>=1){
-                ob.setAvailable(ob.getAvailable()-1);
-                bookTitleRepo.save(ob);
-                book1=ob.getBook();
-                for(Book ob2:book1) {
-                    if (!ob2.isBooked()) {
-                        BooksOrdered ob3=new BooksOrdered();
-                        ob3.setBookId(ob2.getId());
-                        booksOrderedRepo.save(ob3);
-
-                        booksOrdered.add(ob3);
-                        ob2.setBooked(true);
-                        bookRepo.save(ob2);
-                        break;
-                    }
-                }
-            }
+        for (BookTitle bookTitle: bookTitleList){
+            bookTitlesId.add(bookTitle.getId());
         }
-        orders.setBooksOrderedList(booksOrdered);
-        ordersRepo.save(orders);
-        for(BooksOrdered booksOrdered1:booksOrdered){
-            booksOrdered1.setOrders(orders);
-            booksOrderedRepo.save(booksOrdered1);
+        List<BookTitle> bookTitlesList= bookTitleRepo.findBooks(bookTitlesId);
+        for(BookTitle bookTitle : bookTitlesList){
+            BookTitle bookTitle1 = bookTitleRepo.getById(bookTitle.getId());
+            bookTitle1.setAvailable(bookTitle1.getAvailable()-1);
+            Book book = bookRepo.getById(bookTitle.getBooks().get(0).getId());
+            book.setBooked(true);
+            BooksOrdered booksOrder = new BooksOrdered();
+            booksOrder.setBookId(book.getId());
+            booksOrderedRepo.save(booksOrder);
         }
-
-         */
-
+        Orders orders= new Orders(new Date(), userRepo.getById(id), booksOrdered );
         cart.setPurchased(true);
+        ordersRepo.save(orders);
         cartRepo.save(cart);
-
-
         return "success";
     }
 
@@ -289,22 +220,18 @@ public class UserServiceImpl implements UserService {
         }
 
         Cart cart= cartRepo.findByUserCartIdAndPurchased(id,false);
-        List<BookTitle> bookTitleList= cart.getBook();
-
-        CartAddResponseDTO cartAddResponseDTO=new CartAddResponseDTO();
+        List<BookTitle> bookTitleList= cart.getBookTitleList();
+        CartAddResponseDTO cartAddResponseDTO = new CartAddResponseDTO();
         List<CartInfo> details = new ArrayList<>();
 
-        for (int i = 0; i < bookTitleList.size(); i++) {
-            CartInfo cartInfo = new CartInfo();
-            cartInfo.setBookTitleId(bookTitleList.get(i).getId());
-            cartInfo.setBookName(bookTitleList.get(i).getBookName());
+        for(BookTitle bookTitle1 : bookTitleList){
+            CartInfo cartInfo = new CartInfo(bookTitle1.getId(), bookTitle1.getBookName());
             details.add(cartInfo);
         }
 
         cartAddResponseDTO.setCartCount(bookTitleList.size());
         cartAddResponseDTO.setBookTitleList(details);
         return cartAddResponseDTO;
-
     }
 
 
@@ -315,11 +242,7 @@ public class UserServiceImpl implements UserService {
         }
         List<Orders> history= ordersRepo.findByUserOrderId(id);
         List<ViewOrder> result= new ArrayList<>();
-
-
-
         for(Orders oldOrders: history){
-            Long orderId= oldOrders.getId();
             Date issueDate= oldOrders.getIssueDate();
             Date returnDate=null;
             String bookName="";
@@ -333,54 +256,45 @@ public class UserServiceImpl implements UserService {
                 ViewOrder oneOrder=new ViewOrder(bookId,bookName,issueDate,returnDate);
                 result.add(oneOrder);
             }
-
         }
-
         return result;
     }
 
 
     @Override
      public  ReturnBookResponseDTO returnBook(Long userId,Long bookId){
-        if (userId==null){
-            throw new IllegalArgumentException("user id not valid");
+            if (userId == null) {
+                throw new IllegalArgumentException("user id not valid");
+            }
+            if (bookId == null) {
+                throw new IllegalArgumentException("bookId not valid");
+            }
+
+            BooksOrdered booksOrdered = booksOrderedRepo.findByUserBookIdAndBookId(userId, bookId);
+            Date returnDate = new Date();
+            booksOrdered.setReturnDate(returnDate);
+            booksOrderedRepo.save(booksOrdered);
+
+            Date issueDate = booksOrdered.getOrders().getIssueDate();
+            Long timeDifference = returnDate.getTime() - issueDate.getTime();
+
+            Long days_difference = (timeDifference / (1000 * 60 * 60 * 24));
+            Long cost = 0L;
+            if (days_difference <= 15) {
+                cost = days_difference * 2;
+            } else {
+                cost = (days_difference - 15) * 5 + 30;
+            }
+            ReturnBookResponseDTO returnBookResponseDTO = new ReturnBookResponseDTO(bookId, returnDate, cost);
+
+            Book book = bookRepo.getById(bookId);
+            book.setBooked(false);
+            bookRepo.save(book);
+
+            BookTitle bookTitle = book.getBookTitle();
+            bookTitle.setAvailable(bookTitle.getAvailable() + 1);
+            bookTitleRepo.save(bookTitle);
+
+            return returnBookResponseDTO;
         }
-        if (bookId==null){
-            throw new IllegalArgumentException("bookId not valid");
-        }
-
-        BooksOrdered booksOrdered= booksOrderedRepo.findByUserBookIdAndBookId(userId,bookId);
-        Date returnDate= new Date();
-        booksOrdered.setReturnDate(returnDate);
-        booksOrderedRepo.save(booksOrdered);
-
-        Date issueDate=booksOrdered.getOrders().getIssueDate();
-        Long  timeDifference= returnDate.getTime()-issueDate.getTime();
-
-        Long days_difference = (timeDifference / (1000*60*60*24));
-        Long cost=0L;
-        if (days_difference<=15){
-            cost=days_difference*2;
-        }
-        else{
-            cost=(days_difference-15)*5 + 30;
-        }
-        ReturnBookResponseDTO returnBookResponseDTO=new ReturnBookResponseDTO(bookId,returnDate,cost);
-
-        Book book= bookRepo.getById(bookId);
-        book.setBooked(false);
-        bookRepo.save(book);
-
-        BookTitle bookTitle=book.getBookTitle();
-        bookTitle.setAvailable(bookTitle.getAvailable()+1);
-        bookTitleRepo.save(bookTitle);
-
-
-        return returnBookResponseDTO;
-
-
     }
-
-
-
-}
